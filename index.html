@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>T-Minus Countdown: Online Sessional Exam</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    body.screenshot-mode {
+      justify-content: center;
+      background: #090d16;
+    }
+    body.screenshot-mode .controls-panel {
+      display: none;
+    }
+    body.screenshot-mode .container {
+      display: flex;
+      justify-content: center;
+    }
+
+    .top-bar {
+      width: 100%;
+      max-width: 1120px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px 20px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+    }
+
+    body.screenshot-mode .top-bar {
+      max-width: 420px;
+      justify-content: center;
+    }
+    body.screenshot-mode .top-bar-info {
+      display: none;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    h1 { font-size: 20px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.15s, opacity 0.15s, background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #ffffff;
+    }
+    .btn-secondary {
+      background: #334155;
+      color: #f8fafc;
+      border: 1px solid #475569;
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 560px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 13px;
+      outline: none;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: #f59e0b;
+    }
+
+    .milestone-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      background: #0f172a;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .milestone-row .day-input { width: 140px; flex-shrink: 0; }
+    .milestone-row .task-input { flex: 1; }
+    .milestone-row .icon-input { width: 46px; text-align: center; flex-shrink: 0; }
+    .btn-del {
+      background: transparent;
+      color: #94a3b8;
+      padding: 6px 8px;
+      font-size: 14px;
+    }
+    .btn-del:hover { color: #ef4444; }
+
+    /* Phone Mockup */
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .phone-shell {
+      width: 340px;
+      height: 690px;
+      border-radius: 46px;
+      padding: 12px;
+      background: #111827;
+      border: 4px solid #374151;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.65);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wallpaper {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      transition: background 0.4s ease;
+    }
+
+    .wallpaper-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.05) 45%, rgba(0,0,0,0.35) 100%);
+    }
+
+    .notch {
+      position: relative;
+      z-index: 5;
+      width: 96px;
+      height: 18px;
+      background: #000000;
+      border-radius: 999px;
+      margin: 2px auto 6px auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+    }
+    .camera-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #1f2937;
+    }
+
+    .status-bar {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    .clock-area {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      color: #ffffff;
+      margin-top: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    }
+    .clock-time {
+      font-size: 54px;
+      font-weight: 300;
+      letter-spacing: -1px;
+      line-height: 1.05;
+    }
+    .clock-ampm {
+      font-size: 18px;
+      font-weight: 400;
+      margin-left: 4px;
+      opacity: 0.9;
+    }
+    .clock-date {
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 3px;
+      opacity: 0.95;
+    }
+
+    .tagline-pill {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.32);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #ffffff;
+    }
+
+    .glass-card-wrap {
+      position: relative;
+      z-index: 5;
+      margin: 14px 6px 8px 6px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .glass-card {
+      border-radius: 26px;
+      padding: 16px 14px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .glass-header {
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+    }
+    .glass-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+    .glass-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-top: 2px;
+      letter-spacing: -0.3px;
+    }
+
+    .phone-list {
+      margin-top: 10px;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 2px;
+    }
+
+    .phone-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 4px;
+    }
+    .phone-item:hover {
+      background: rgba(255,255,255,0.22);
+    }
+    .phone-item.done {
+      opacity: 0.55;
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checkbox-box {
+      width: 17px;
+      height: 17px;
+      border-radius: 5px;
+      border: 1.8px solid currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.35);
+    }
+    .phone-item.done .checkbox-box {
+      background: #d97706;
+      border-color: #d97706;
+      color: #ffffff;
+    }
+
+    .item-day {
+      font-size: 11.5px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .item-task {
+      font-size: 11.5px;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+    .phone-item.done .item-task {
+      text-decoration: line-through;
+    }
+    .item-icon {
+      font-size: 16px;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .bottom-dock {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 14px 4px 14px;
+    }
+    .dock-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 14px;
+    }
+    .home-pill {
+      width: 84px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.6);
+    }
+
+    .helper-note {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="top-bar-info">
+      <div class="badge">✨ Nov 25, 2026 • Online Sessional Exam</div>
+      <h1>Countdown Lock Screen Studio</h1>
+      <div class="subtitle">Edit milestones, toggle Screenshot Mode, or download PNG files directly for Handshake submission.</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn-secondary" id="toggleScreenshotBtn">📸 Hide Controls (Screenshot Mode)</button>
+      <button class="btn-primary" id="downloadWallpaperBtn">⬇️ Download Lock Screen (9:16 PNG)</button>
+      <button class="btn-success" id="downloadCoverBtn">🖼️ Download Cover Image (3:2 PNG)</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Left Controls -->
+    <div class="controls-panel">
+      <div class="card">
+        <div class="card-title">1. Event & Theme Settings</div>
+        <div class="grid-2">
+          <div>
+            <label>Goal / Exam Name</label>
+            <input type="text" id="eventNameInput" value="Sessional Exam" />
+          </div>
+          <div>
+            <label>Style Theme</label>
+            <select id="themeSelect">
+              <option value="autumn" selected>🍂 Warm Study Glow (Reference Style)</option>
+              <option value="midnight">🌙 Midnight Focus (Dark Mode)</option>
+              <option value="sage">🌿 Calm Sage Minimal</option>
+              <option value="ocean">🌊 Ocean Breeze Frost</option>
+            </select>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Top Banner Tagline</label>
+            <input type="text" id="taglineInput" value="📚 Online Sessional Exam • Nov 25" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>2. T-Minus Milestones (Under 5 Words)</span>
+          <button class="btn-secondary" id="addRowBtn" style="padding: 6px 10px; font-size: 12px;">+ Add Row</button>
+        </div>
+        <div id="editorRows"></div>
+      </div>
+    </div>
+
+    <!-- Right Phone Preview -->
+    <div class="phone-column">
+      <div class="phone-shell" id="phoneShell">
+        <div class="wallpaper" id="wallpaperBg"></div>
+        <div class="wallpaper-overlay"></div>
+
+        <div class="notch"><div class="camera-dot"></div></div>
+
+        <div class="status-bar">
+          <span>5G • Study Mode</span>
+          <span>🔋 88%</span>
+        </div>
+
+        <div class="clock-area">
+          <div class="clock-time">12:05<span class="clock-ampm">PM</span></div>
+          <div class="clock-date">Thursday, Nov 12 • 13 Days Left</div>
+          <div class="tagline-pill" id="previewTagline">📚 Online Sessional Exam • Nov 25</div>
+        </div>
+
+        <div class="glass-card-wrap">
+          <div class="glass-card" id="glassCard">
+            <div class="glass-header">
+              <div class="glass-kicker">T-MINUS COUNTDOWN:</div>
+              <div class="glass-title" id="previewTitle">Sessional Exam</div>
+            </div>
+            <div class="phone-list" id="phoneList"></div>
+          </div>
+        </div>
+
+        <div class="bottom-dock">
+          <div class="dock-icon">🔒</div>
+          <div class="home-pill"></div>
+          <div class="dock-icon">📷</div>
+        </div>
+      </div>
+      <div class="helper-note">Tip: Checkboxes par click karke tick/untick bhi kar sakte ho!</div>
+    </div>
+  </div>
+
+  <script>
+    const themes = {
+      autumn: {
+        bgCss: "radial-gradient(circle at 20% 15%, #fde68a 0%, transparent 45%), radial-gradient(circle at 85% 25%, #bbf7d0 0%, transparent 45%), linear-gradient(160deg, #65a30d 0%, #d97706 50%, #78350f 100%)",
+        gradStops: ["#84a93c", "#d97706", "#78350f"],
+        cardBg: "rgba(255, 251, 235, 0.78)",
+        cardBorder: "rgba(255, 255, 255, 0.7)",
+        textColor: "#451a03",
+        accent: "#b45309"
+      },
+      midnight: {
+        bgCss: "radial-gradient(circle at 80% 15%, #6366f1 0%, transparent 45%), radial-gradient(circle at 20% 80%, #ec4899 0%, transparent 50%), linear-gradient(160deg, #0f172a 0%, #1e1b4b 60%, #09090b 100%)",
+        gradStops: ["#1e1b4b", "#312e81", "#09090b"],
+        cardBg: "rgba(15, 23, 42, 0.72)",
+        cardBorder: "rgba(165, 180, 252, 0.35)",
+        textColor: "#f8fafc",
+        accent: "#818cf8"
+      },
+      sage: {
+        bgCss: "radial-gradient(circle at 30% 20%, #dcfce7 0%, transparent 50%), linear-gradient(155deg, #86efac 0%, #16a34a 55%, #14532d 100%)",
+        gradStops: ["#86efac", "#16a34a", "#14532d"],
+        cardBg: "rgba(240, 253, 244, 0.78)",
+        cardBorder: "rgba(255, 255, 255, 0.65)",
+        textColor: "#052e16",
+        accent: "#15803d"
+      },
+      ocean: {
+        bgCss: "radial-gradient(circle at 75% 20%, #bae6fd 0%, transparent 45%), linear-gradient(160deg, #38bdf8 0%, #0284c7 55%, #0c4a6e 100%)",
+        gradStops: ["#38bdf8", "#0284c7", "#0c4a6e"],
+        cardBg: "rgba(240, 249, 255, 0.78)",
+        cardBorder: "rgba(255, 255, 255, 0.65)",
+        textColor: "#082f49",
+        accent: "#0369a1"
+      }
+    };
+
+    let milestones = [
+      { day: "T-13 Days (Nov 12)", task: "Gather syllabus and notes", icon: "📝", done: false },
+      { day: "T-10 Days (Nov 15)", task: "Finish high-weightage units", icon: "📖", done: false },
+      { day: "T-7 Days (Nov 18)", task: "Complete remaining chapters", icon: "📚", done: false },
+      { day: "T-4 Days (Nov 21)", task: "Solve past exam papers", icon: "✍️", done: false },
+      { day: "T-2 Days (Nov 23)", task: "Full syllabus quick revision", icon: "⚡", done: false },
+      { day: "T-1 Day (Nov 24)", task: "Test laptop, mic, Wi-Fi", icon: "💻", done: false },
+      { day: "T-0 Days (Nov 25)", task: "Log in early, ace exam!", icon: "🎯", done: false }
+    ];
+
+    let currentTheme = "autumn";
+
+    const eventNameInput = document.getElementById("eventNameInput");
+    const themeSelect = document.getElementById("themeSelect");
+    const taglineInput = document.getElementById("taglineInput");
+    const editorRows = document.getElementById("editorRows");
+    const phoneList = document.getElementById("phoneList");
+    const wallpaperBg = document.getElementById("wallpaperBg");
+    const glassCard = document.getElementById("glassCard");
+    const previewTitle = document.getElementById("previewTitle");
+    const previewTagline = document.getElementById("previewTagline");
+    const toggleScreenshotBtn = document.getElementById("toggleScreenshotBtn");
+
+    function renderEditor() {
+      editorRows.innerHTML = "";
+      milestones.forEach((m, i) => {
+        const div = document.createElement("div");
+        div.className = "milestone-row";
+        div.innerHTML = `
+          <input type="text" class="day-input" value="${m.day}" oninput="updateItem(${i}, 'day', this.value)" />
+          <input type="text" class="task-input" value="${m.task}" oninput="updateItem(${i}, 'task', this.value)" />
+          <input type="text" class="icon-input" value="${m.icon}" oninput="updateItem(${i}, 'icon', this.value)" />
+          <button class="btn-del" onclick="deleteItem(${i})" title="Remove">✕</button>
+        `;
+        editorRows.appendChild(div);
+      });
+    }
+
+    function renderPreview() {
+      const t = themes[currentTheme];
+      wallpaperBg.style.background = t.bgCss;
+      glassCard.style.background = t.cardBg;
+      glassCard.style.border = "1px solid " + t.cardBorder;
+      glassCard.style.color = t.textColor;
+
+      previewTitle.textContent = eventNameInput.value || "Sessional Exam";
+      previewTagline.textContent = taglineInput.value || "Countdown Active";
+
+      phoneList.innerHTML = "";
+      milestones.forEach((m, i) => {
+        const item = document.createElement("div");
+        item.className = "phone-item" + (m.done ? " done" : "");
+        item.onclick = () => {
+          milestones[i].done = !milestones[i].done;
+          renderPreview();
+        };
+        item.innerHTML = `
+          <div class="item-left">
+            <div class="checkbox-box">${m.done ? "✓" : ""}</div>
+            <div>
+              <div class="item-day">${m.day}</div>
+              <div class="item-task">${m.task}</div>
+            </div>
+          </div>
+          <div class="item-icon">${m.icon}</div>
+        `;
+        phoneList.appendChild(item);
+      });
+    }
+
+    window.updateItem = (idx, key, val) => {
+      milestones[idx][key] = val;
+      renderPreview();
+    };
+
+    window.deleteItem = (idx) => {
+      milestones.splice(idx, 1);
+      renderEditor();
+      renderPreview();
+    };
+
+    document.getElementById("addRowBtn").onclick = () => {
+      milestones.push({ day: "T-X Days", task: "New study milestone", icon: "📌", done: false });
+      renderEditor();
+      renderPreview();
+    };
+
+    eventNameInput.oninput = renderPreview;
+    taglineInput.oninput = renderPreview;
+    themeSelect.onchange = (e) => {
+      currentTheme = e.target.value;
+      renderPreview();
+    };
+
+    toggleScreenshotBtn.onclick = () => {
+      document.body.classList.toggle("screenshot-mode");
+      const isMode = document.body.classList.contains("screenshot-mode");
+      toggleScreenshotBtn.textContent = isMode ? "⚙️ Show Controls" : "📸 Hide Controls (Screenshot Mode)";
+    };
+
+    // High-Res Canvas Generator for PNG Downloads
+    function drawRoundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function renderLockscreenToCanvas(ctx, xOffset, yOffset, width, height) {
+      const t = themes[currentTheme];
+      ctx.save();
+      ctx.translate(xOffset, yOffset);
+
+      // Background gradient
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, t.gradStops[0]);
+      grad.addColorStop(0.5, t.gradStops[1]);
+      grad.addColorStop(1, t.gradStops[2]);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Soft bokeh circles
+      const bokehColors = ["rgba(255,255,255,0.18)", "rgba(254,243,199,0.22)", "rgba(255,255,255,0.1)"];
+      for (let i = 0; i < 14; i++) {
+        ctx.beginPath();
+        const bx = (Math.sin(i * 19.3) * 0.5 + 0.5) * width;
+        const by = (Math.cos(i * 7.7) * 0.5 + 0.5) * height;
+        const br = (width * 0.08) + (i % 4) * (width * 0.04);
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fillStyle = bokehColors[i % bokehColors.length];
+        ctx.fill();
+      }
+
+      // Top clean headroom (Clock sample + Tagline)
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(255,255,255,0.95)";
+      ctx.font = `300 ${Math.round(width * 0.14)}px Segoe UI, sans-serif`;
+      ctx.fillText("12:05 PM", width / 2, height * 0.16);
+
+      ctx.font = `500 ${Math.round(width * 0.036)}px Segoe UI, sans-serif`;
+      ctx.fillText("Thursday, Nov 12  •  13 Days Left", width / 2, height * 0.20);
+
+      // Tagline pill
+      const tag = taglineInput.value || "Online Sessional Exam • Nov 25";
+      ctx.font = `600 ${Math.round(width * 0.032)}px Segoe UI, sans-serif`;
+      const tagW = Math.min(width * 0.8, ctx.measureText(tag).width + width * 0.09);
+      const tagH = height * 0.036;
+      drawRoundRect(ctx, (width - tagW) / 2, height * 0.225, tagW, tagH, tagH / 2);
+      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(tag, width / 2, height * 0.249);
+
+      // Frosted glass card
+      const cardX = width * 0.075;
+      const cardY = height * 0.29;
+      const cardW = width * 0.85;
+      const cardH = height * 0.62;
+      drawRoundRect(ctx, cardX, cardY, cardW, cardH, width * 0.055);
+      ctx.fillStyle = t.cardBg;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = t.cardBorder;
+      ctx.stroke();
+
+      // Card title
+      ctx.fillStyle = t.textColor;
+      ctx.font = `800 ${Math.round(width * 0.032)}px Segoe UI, sans-serif`;
+      ctx.fillText("T-MINUS COUNTDOWN:", width / 2, cardY + height * 0.05);
+
+      ctx.font = `800 ${Math.round(width * 0.058)}px Segoe UI, sans-serif`;
+      ctx.fillText(eventNameInput.value || "Sessional Exam", width / 2, cardY + height * 0.095);
+
+      // Divider
+      ctx.beginPath();
+      ctx.moveTo(cardX + width * 0.06, cardY + height * 0.115);
+      ctx.lineTo(cardX + cardW - width * 0.06, cardY + height * 0.115);
+      ctx.strokeStyle = "rgba(128,128,128,0.28)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Milestones list
+      ctx.textAlign = "left";
+      const startY = cardY + height * 0.155;
+      const rowStep = (cardH - height * 0.18) / Math.max(milestones.length, 1);
+
+      milestones.forEach((m, idx) => {
+        const ry = startY + idx * rowStep;
+        const boxSize = width * 0.042;
+        const bx = cardX + width * 0.065;
+
+        // Checkbox
+        drawRoundRect(ctx, bx, ry - boxSize * 0.2, boxSize, boxSize, width * 0.01);
+        if (m.done) {
+          ctx.fillStyle = t.accent;
+          ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          ctx.font = `800 ${Math.round(width * 0.03)}px Segoe UI, sans-serif`;
+          ctx.fillText("✓", bx + boxSize * 0.22, ry + boxSize * 0.55);
+        } else {
+          ctx.fillStyle = "rgba(255,255,255,0.45)";
+          ctx.fill();
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = t.textColor;
+          ctx.stroke();
+        }
+
+        // Text
+        ctx.fillStyle = t.textColor;
+        ctx.font = `700 ${Math.round(width * 0.031)}px Segoe UI, sans-serif`;
+        ctx.fillText(m.day, bx + boxSize + width * 0.03, ry + boxSize * 0.15);
+
+        ctx.font = `500 ${Math.round(width * 0.031)}px Segoe UI, sans-serif`;
+        ctx.fillText(m.task, bx + boxSize + width * 0.03, ry + boxSize * 0.8);
+
+        // Icon
+        ctx.textAlign = "right";
+        ctx.font = `${Math.round(width * 0.05)}px Segoe UI Emoji, sans-serif`;
+        ctx.fillText(m.icon, cardX + cardW - width * 0.06, ry + boxSize * 0.55);
+        ctx.textAlign = "left";
+      });
+
+      ctx.restore();
+    }
+
+    document.getElementById("downloadWallpaperBtn").onclick = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext("2d");
+      renderLockscreenToCanvas(ctx, 0, 0, 1080, 1920);
+
+      const link = document.createElement("a");
+      link.download = "sessional_exam_lockscreen_9x16.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+
+    document.getElementById("downloadCoverBtn").onclick = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1500;
+      canvas.height = 1000; // 3:2 ratio, >1200px wide
+      const ctx = canvas.getContext("2d");
+
+      // Background dark sleek backdrop for cover
+      const bgGrad = ctx.createLinearGradient(0, 0, 1500, 1000);
+      bgGrad.addColorStop(0, "#0f172a");
+      bgGrad.addColorStop(1, "#1e293b");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 1500, 1000);
+
+      // Left side text info
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "700 28px Segoe UI, sans-serif";
+      ctx.fillText("YOUR DEADLINE, YOUR DESIGN", 90, 260);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "800 58px Segoe UI, sans-serif";
+      ctx.fillText("T-Minus Countdown", 90, 340);
+      ctx.fillText("Lock Screen", 90, 410);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "500 28px Segoe UI, sans-serif";
+      ctx.fillText("Target: " + (eventNameInput.value || "Sessional Exam"), 90, 490);
+      ctx.fillText("Date: Nov 25, 2026 (13-Day Plan)", 90, 535);
+      ctx.fillText("Built with Gemini AI Milestones", 90, 580);
+
+      // Right side Phone frame
+      const phoneW = 460;
+      const phoneH = 880;
+      const px = 910;
+      const py = 60;
+
+      // Phone outer bezel
+      drawRoundRect(ctx, px - 16, py - 16, phoneW + 32, phoneH + 32, 54);
+      ctx.fillStyle = "#111827";
+      ctx.fill();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = "#475569";
+      ctx.stroke();
+
+      // Clip screen
+      ctx.save();
+      drawRoundRect(ctx, px, py, phoneW, phoneH, 42);
+      ctx.clip();
+      renderLockscreenToCanvas(ctx, px, py, phoneW, phoneH);
+      ctx.restore();
+
+      const link = document.createElement("a");
+      link.download = "sessional_exam_cover_3x2.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+
+    renderEditor();
+    renderPreview();
+  </script>
+</body>
+</html>
